@@ -32,9 +32,9 @@ class nav2py_template_controller(nav2py.interfaces.nav2py_costmap_controller):
             config = Config()
             
             # Set model paths: replace with actual model paths
-            vae_path = None
-            policy_path = None
-            
+
+            vae_path = "vae.pth"
+            policy_path = "policy.pt"            
             # Check if model files exist
             if not os.path.exists(vae_path) or not os.path.exists(policy_path):
                 self.logger.warn(f"Model files not found at {vae_path} or {policy_path}")

@@ -24,7 +24,4 @@ Install [Python-RVO2](https://github.com/sybrenstuvel/Python-RVO2) library
 Follow the instructions from the original repository to train the model.
 You should obtain both VAE and RNN models after training.
 
-### **4. Update Model Path**
-
-in `__main__.py` change the path of the model to the path of the model you trained
-
+We provide the trained models following the original paper settings.
