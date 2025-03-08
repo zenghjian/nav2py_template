@@ -1,7 +1,8 @@
 /*
  * SPDX-License-Identifier: BSD-3-Clause
  *
- * Template Controller for nav2py
+ *  Author(s): Shrijit Singh <shrijitsingh99@gmail.com>
+ *
  */
 
  #ifndef NAV2PY_TEMPLATE_CONTROLLER__TEMPLATE_CONTROLLER_HPP_
@@ -15,6 +16,7 @@
  #include "rclcpp/rclcpp.hpp"
  #include "pluginlib/class_loader.hpp"
  #include "pluginlib/class_list_macros.hpp"
+ #include "sensor_msgs/msg/laser_scan.hpp"
  
  namespace nav2py_template_controller
  {
@@ -30,6 +32,7 @@
      std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
      const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
  
+ 
    void cleanup() override;
    void activate() override;
    void deactivate() override;
@@ -43,9 +46,15 @@
    void setPlan(const nav_msgs::msg::Path & path) override;
  
  protected:
-   void sendData(
-     const geometry_msgs::msg::PoseStamped & pose,
-     const geometry_msgs::msg::Twist & velocity = geometry_msgs::msg::Twist());
+   nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped & pose);
+ 
+   bool transformPose(
+     const std::shared_ptr<tf2_ros::Buffer> tf,
+     const std::string frame,
+     const geometry_msgs::msg::PoseStamped & in_pose,
+     geometry_msgs::msg::PoseStamped & out_pose,
+     const rclcpp::Duration & transform_tolerance
+   ) const;
  
    rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
    std::shared_ptr<tf2_ros::Buffer> tf_;
@@ -58,6 +67,12 @@
  
    nav_msgs::msg::Path global_plan_;
    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_pub_;
+   
+   void sendCostmapAndPose(
+     const geometry_msgs::msg::PoseStamped & pose,
+     const geometry_msgs::msg::Twist & velocity = geometry_msgs::msg::Twist());
+   
+ 
  };
  
  }  // namespace nav2py_template_controller
