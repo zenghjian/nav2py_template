@@ -54,20 +54,130 @@ nav2py_template/
 ```
 
 ### **Development Guide**
-1. **Add your Python code in the `src/nav2py_template/nav2py_template_controller/` directory.**
-   - Entry file: `__main__.py`
-   - Implement `planner.py` according to your navigation requirements.
 
-2. **If additional input data is needed**, modify the following files:
-   - `template_controller.cpp`
-   - `template_controller.hpp`
-   - `__main__.py`
+#### 1. **Understanding the Template Structure**
+The template is designed to help you integrate Python-based navigation algorithms with Nav2. It consists of two main parts:
+- C++ Controller (`template_controller.cpp`): Handles ROS2 communication and data transmission
+- Python Planner (`planner.py`): Implements your navigation algorithm
 
-   **The current example only supports transmitting:**
-   - Robot position
-   - Velocity
-   - Goal
+#### 2. **Adding Your Custom Planner**
+
+##### 2.1 **Create Your Planner Class**
+In `src/nav2py_template/nav2py_template_controller/planner.py`, create your planner class:
+
+```python
+from nav2py.interfaces import Controller
+
+class YourCustomPlanner(Controller):
+    def __init__(self):
+        super().__init__()
+        # Initialize your planner's parameters
+        self.param1 = None
+        self.param2 = None
+        
+    def configure(self, param1, param2):
+        """Configure your planner with parameters"""
+        self.param1 = param1
+        self.param2 = param2
+        
+    def compute_velocity_commands(self, current_pose, current_velocity, goal_pose):
+        """
+        Implement your navigation algorithm here
+        
+        Args:
+            current_pose: Current robot pose (geometry_msgs/Pose)
+            current_velocity: Current robot velocity (geometry_msgs/Twist)
+            goal_pose: Goal pose (geometry_msgs/Pose)
+            
+        Returns:
+            velocity_command: Desired velocity command (geometry_msgs/Twist)
+        """
+        # Your navigation logic here
+        velocity_command = Twist()
+        return velocity_command
+```
+
+##### 2.2 **Update Main Entry Point**
+Modify `src/nav2py_template/nav2py_template_controller/__main__.py` to create and configure your planner in the controller class:
+
+```python
+class nav2py_template_controller(nav2py.interfaces.nav2py_costmap_controller):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Create and configure your planner
+        self.planner = YourCustomPlanner()
+        self.planner.configure(param1=value1, param2=value2)
+        
+        # Register callbacks
+        self._register_callback('data', self._data_callback)
+        self._register_callback('path', self._path_callback)
+        
+        self.logger = get_logger('nav2py_template_controller')
+        self.frame_count = 0
+        self.path = None
+        
+        self.logger.info("nav2py_template_controller initialized")
+        
+    def _data_callback(self, data):
+        # Process data and use your planner
+        try:
+            # ... parse data ...
+            
+            # Use your planner to compute velocity commands
+            velocity_command = self.planner.compute_velocity_commands(
+                current_pose=robot_pose,
+                current_velocity=velocity,
+                goal_pose=goal_pose
+            )
+            
+            # Send velocity commands
+            self._send_cmd_vel(
+                velocity_command.linear.x,
+                velocity_command.angular.z
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error in data callback: {e}")
+            self._send_cmd_vel(0.0, 0.0)
+
+```
+##### 2.3 **Add Additional Data Transmission (Optional)**
+If your planner needs additional sensor data or parameters:
+
+1. Modify `template_controller.hpp` to add new data structures:
+```cpp
+struct AdditionalData {
+    // Add your new data fields here
+    sensor_msgs::msg::LaserScan scan_data;
+    // ... other data
+};
+```
+
+2. Update `template_controller.cpp` to handle the new data:
+```cpp
+void TemplateController::process_additional_data() {
+    // Subscribe to new topics
+    scan_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
+        "scan", 10,
+        std::bind(&TemplateController::scan_callback, this, std::placeholders::_1));
+}
+
+void TemplateController::scan_callback(const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+    // Process scan data
+    additional_data_.scan_data = *msg;
+}
+```
+
+3. Update the Python interface in `__main__.py`:
+```python
+def scan_callback(self, scan_data):
+    # Process scan data in your planner
+    self.planner.process_scan(scan_data)
+```
+
+
 
 
 ## 📧 Contact
-For any inquiries, please contact [Huajian Zeng](mailto:zenghuajian97@gmail.com).
+For any questions, please contact [us](huajian.zeng@tum.de)
