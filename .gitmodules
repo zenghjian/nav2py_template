@@ -1,0 +1,12 @@
+[submodule "nav2py"]
+	path = nav2py
+	url = https://github.com/voshch/nav2py.git
+	branch = humble
+[submodule "ament_cmake_venv_uv"]
+	path = ament_cmake_venv_uv
+	url = https://github.com/voshch/ament_cmake_venv_uv.git
+	branch = humble
+[submodule "ament_cmake_venv"]
+	path = ament_cmake_venv
+	url = https://github.com/voshch/ament_cmake_venv.git
+	branch = humble
